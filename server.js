@@ -1,5 +1,5 @@
 import http from 'http';
-import { readFileSync, writeFileSync, appendFileSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import dotenv from 'dotenv';
 import { newDataId } from './lib/functions.js';
 
@@ -43,6 +43,7 @@ http.createServer((req, res) => {
         // new data add 
         let data = '';
         req.on('data', (chunk) => {
+            
             data += chunk.toString();
 
         });
@@ -57,7 +58,7 @@ http.createServer((req, res) => {
                 location : location
             });
 
-            // writeFileSync('./data/students.json', JSON.stringify(students_obj));
+            writeFileSync('./data/students.json', JSON.stringify(students_obj));
 
             res.writeHead(200, { 'Content-type' : 'application/json' });
             res.end(JSON.stringify({
@@ -65,6 +66,15 @@ http.createServer((req, res) => {
             }));
 
         });
+
+    }else if(req.url.match(/\/api\/students\/[0-9]{1,}/) && req.method === 'DELETE'){
+
+        let delId = req.url.split('/')[3]
+        if(students_obj.some(data => data.id == delId)){
+            let delStu = students_obj.filter(data => data.id != delId);
+            
+            writeFileSync('./data/students.json', JSON.stringify(delStu));
+        }
 
     }else{
         res.writeHead(200, { 'Content-type' : 'application/json' });
