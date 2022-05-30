@@ -69,12 +69,55 @@ http.createServer((req, res) => {
 
     }else if(req.url.match(/\/api\/students\/[0-9]{1,}/) && req.method === 'DELETE'){
 
+        // data delete
         let delId = req.url.split('/')[3]
         if(students_obj.some(data => data.id == delId)){
             let delStu = students_obj.filter(data => data.id != delId);
             
             writeFileSync('./data/students.json', JSON.stringify(delStu));
         }
+
+        res.writeHead(200, { 'Content-type' : 'application/json' });
+        res.end(JSON.stringify({
+            "messasge" : "Data Deleted"
+        }));
+
+    }else if(req.url.match(/\/api\/students\/[0-9]{1,}/) && req.method === 'PUT' || req.url.match(/\/api\/students\/[0-9]{1,}/) && req.method === 'PATCH'){
+
+        // data edit
+        let editId = req.url.split('/')[3]
+        if(students_obj.some(data => data.id == editId)){
+
+            // updated data get
+            let data = '';
+            req.on('data', (chunk) => {
+                data += chunk.toString();
+            });
+            req.on('end', () => {
+
+                let { name , skill, location} = JSON.parse(data);
+                let ddd = students_obj[students_obj.findIndex(data => data.id == editId)] = {
+                    id : editId,
+                    name : name, 
+                    skill : skill,
+                    location : location
+                };
+
+                writeFileSync('./data/students.json', JSON.stringify(students_obj));
+
+                // console.log(ddd);
+
+            });
+
+
+        }else{
+            res.writeHead(200, { 'Content-type' : 'application/json' });
+            res.end(JSON.stringify({
+                "message" : "Data Not Found"
+            }));
+        }
+
+
 
     }else{
         res.writeHead(200, { 'Content-type' : 'application/json' });
